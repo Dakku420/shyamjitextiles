@@ -1,0 +1,10 @@
+VhZeDdnNd0UGLosog
+service_913qjqs
+template_af9phoh
+
+            .send(
+                "service_9clzhhr",    // Replace with your actual EmailJS service ID
+                "template_bhd8gfc",   // Replace with your actual EmailJS template ID
+                templateParams,
+                "6aamT4ejL9S1BLXqV0dt2"     // Replace with your EmailJS public key (user ID)
+            )

@@ -1,0 +1,11 @@
+You have received a new query from {{from_name}}.
+
+Details:
+Name: {{from_name}}
+Email: {{reply_to}}
+Phone: {{phone}}
+
+Message: 
+{{message}}
+
+Please follow up with the customer as soon as possible.
