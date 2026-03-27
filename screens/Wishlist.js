@@ -1,7 +1,5 @@
-import React, { useState, useContext } from 'react';
-
-import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, Modal, ScrollView, Alert } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import React, { useContext } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert, Image, ScrollView } from 'react-native';
 import { WishlistContext } from '../context/WishlistContext';
 import Footer from '../components/Footer';
 
@@ -13,97 +11,67 @@ const productList = [
   { name: 'TNT-sofa-throw', images: [require('../assets/products/TNT-sofa-throw-1.jpg'), require('../assets/products/TNT-sofa-throw-2.jpg'), require('../assets/products/TNT-sofa-throw-3.jpg'), require('../assets/products/TNT-sofa-throw-4.jpg'), require('../assets/products/TNT-sofa-throw-5.jpg'), require('../assets/products/TNT-sofa-throw-6.jpg'), require('../assets/products/TNT-sofa-throw-7.jpg'), require('../assets/products/TNT-sofa-throw-8.jpg'), require('../assets/products/TNT-sofa-throw-9.jpg'), require('../assets/products/TNT-sofa-throw-10.jpg'), require('../assets/products/TNT-sofa-throw-11.jpg'), require('../assets/products/TNT-sofa-throw-12.jpg'), require('../assets/products/TNT-sofa-throw-13.jpg'), require('../assets/products/TNT-sofa-throw-14.jpg'), require('../assets/products/TNT-sofa-throw-15.jpg'), require('../assets/products/TNT-sofa-throw-16.jpg'), require('../assets/products/TNT-sofa-throw-17.jpg'), require('../assets/products/TNT-sofa-throw-18.jpg'), require('../assets/products/TNT-sofa-throw-19.jpg'), require('../assets/products/TNT-sofa-throw-20.jpg')] },
   { name: 'Towel', images: [require('../assets/products/towel-3.jpg'), require('../assets/products/towel-4.jpg'), require('../assets/products/towel-5.jpg'), require('../assets/products/towel-6.jpg'), require('../assets/products/towel-7.jpg'), require('../assets/products/towel-8.jpg'), require('../assets/products/towel-9.jpg'), require('../assets/products/towel-10.jpg')] },
   { name: 'Table-Runner', images: [require('../assets/products/table-placement-and-napkins-and-runner-set-blue.jpg'), require('../assets/products/table-placement-and-napkins-and-runner-set.jpg'), require('../assets/products/pink-flower-table-runner.jpg'), require('../assets/products/table-placement-and-napkins-and-runner-set-yellow.jpg')] },
-
 ];
 
-const Product = ({ navigation }) => {
-  const { addToWishlist, isInWishlist } = useContext(WishlistContext);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+const Wishlist = () => {
+  const { wishlist, removeFromWishlist, getWishlistCount } = useContext(WishlistContext);
 
-  const handlePress = (item) => {
-    setSelectedProduct(item);
-    setModalVisible(true);
+  const handleRemoveItem = (category, index) => {
+    removeFromWishlist(category, index);
+    Alert.alert('Success', 'Item removed from wishlist');
   };
 
-  const handleAddToWishlist = (imageIndex) => {
-    const productName = selectedProduct.name;
-    const isAlreadyInWishlist = isInWishlist(productName, imageIndex);
-
-    if (isAlreadyInWishlist) {
-      Alert.alert('Already Added', 'This item is already in your wishlist!');
-    } else {
-      const added = addToWishlist({
-        category: productName,
-        index: imageIndex,
-        name: `${productName.replace(/-/g, ' ')} - Item ${imageIndex + 1}`,
-        image: selectedProduct.images[imageIndex],
-      });
-
-      if (added) {
-        Alert.alert('Added to Wishlist', 'Item has been added to your wishlist! ❤️');
-      }
+  const getProductImage = (category, index) => {
+    const product = productList.find((p) => p.name === category);
+    if (product && product.images && product.images[index]) {
+      return product.images[index];
     }
+    return null;
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🧵 Explore Our Products</Text>
-      <FlatList
-        data={productList}
-        keyExtractor={(item) => item.name}
-        numColumns={2}
-        renderItem={({ item }) => {
-          return (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => handlePress(item)}
-            >
-              <Image source={item.images[0]} style={styles.image} />
-              <Text style={styles.label}>{item.name}</Text>
-            </TouchableOpacity>
-          );
-        }}
-        ListFooterComponent={<Footer />}
-      />
+      <Text style={styles.header}>❤️ Your Wishlist ({getWishlistCount()} items)</Text>
 
-      {/* Modal to display all images */}
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <ScrollView contentContainerStyle={styles.imageContainer}>
-            {selectedProduct && selectedProduct.images.map((image, index) => (
-              <View key={index} style={styles.imageWrapper}>
-                <Image source={image} style={styles.modalImage} />
+      {/* If wishlist is empty */}
+      {wishlist.length === 0 ? (
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <Text style={styles.emptyText}>Your wishlist is empty. Add some items you love!</Text>
+          <View style={{ flex: 1 }} />
+          <Footer />
+        </ScrollView>
+      ) : (
+        <>
+          <FlatList
+            data={wishlist}
+            keyExtractor={(item) => `${item.category}-${item.index}-${item.addedAt}`}
+            renderItem={({ item }) => (
+              <View style={styles.item}>
+                <Image
+                  source={getProductImage(item.category, item.index)}
+                  style={styles.itemImage}
+                />
+                <View style={styles.itemContent}>
+                  <Text style={styles.itemCategory}>{item.category.replace(/-/g, ' ').toUpperCase()}</Text>
+                  <Text style={styles.itemName}>{item.name}</Text>
+                  <Text style={styles.itemDate}>
+                    Added: {new Date(item.addedAt).toLocaleDateString()}
+                  </Text>
+                </View>
                 <TouchableOpacity
-                  style={[
-                    styles.wishlistButtonSmall,
-                    isInWishlist(selectedProduct.name, index) && styles.wishlistButtonActive
-                  ]}
-                  onPress={() => handleAddToWishlist(index)}
+                  style={styles.removeButton}
+                  onPress={() => handleRemoveItem(item.category, item.index)}
                 >
-                  <Icon
-                    name={isInWishlist(selectedProduct.name, index) ? 'heart' : 'heart-o'}
-                    size={16}
-                    color="#fff"
-                  />
+                  <Text style={styles.removeButtonText}>✕</Text>
                 </TouchableOpacity>
               </View>
-            ))}
-          </ScrollView>
-
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setModalVisible(false)}
-          >
-            <Text style={styles.closeText}>Close</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+            )}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+            extraData={wishlist}
+            ListFooterComponent={<Footer />}
+          />
+        </>
+      )}
     </View>
   );
 };
@@ -111,91 +79,77 @@ const Product = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 10,
+    padding: 16,
+    backgroundColor: '#f5f5f5',
   },
-  title: {
-    fontSize: 22,
+  header: {
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#8B0000',
     marginBottom: 20,
+    color: '#8B0000',
     textAlign: 'center',
   },
-  card: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    margin: 10,
-    borderRadius: 15,
-    alignItems: 'center',
-    elevation: 5,
-    overflow: 'hidden',
-    height: 300,
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 40,
+    textAlign: 'center',
+    lineHeight: 24,
   },
-  image: {
-    width: '90%',
-    height: 180,
-    resizeMode: 'cover',
+  item: {
+    backgroundColor: '#fff',
+    padding: 12,
+    marginBottom: 12,
     borderRadius: 10,
-  },
-  imageWrapper: {
-    position: 'relative',
-    margin: 10,
-  },
-  wishlistButtonSmall: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: '#FF6B6B',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
-    elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  wishlistButtonActive: {
-    backgroundColor: '#8B0000',
+  itemImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    marginRight: 12,
+    resizeMode: 'cover',
   },
-  label: {
-    paddingVertical: 10,
-    fontSize: 18,
-    fontWeight: '500',
-    textTransform: 'capitalize',
-    color: '#8B0000',
-  },
-  modalContainer: {
+  itemContent: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  itemCategory: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#999',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  itemName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 6,
+  },
+  itemDate: {
+    fontSize: 12,
+    color: '#999',
+  },
+  removeButton: {
+    backgroundColor: '#8B0000',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    marginLeft: 8,
   },
-  imageContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  modalImage: {
-    width: 200,
-    height: 200,
-    resizeMode: 'cover',
-    margin: 10,
-    borderRadius: 10,
-  },
-  closeButton: {
-    backgroundColor: '#8B0000',
-    padding: 10,
-    marginTop: 20,
-    borderRadius: 10,
-  },
-  closeText: {
+  removeButtonText: {
     color: '#fff',
     fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 
-export default Product;
+export default Wishlist;

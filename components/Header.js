@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, SafeAreaView, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { WishlistContext } from '../context/WishlistContext';
+import { CartContext } from '../context/CartContext';
 
 const Header = () => {
   const navigation = useNavigation();
+  const { getWishlistCount } = useContext(WishlistContext);
+  const { getCartCount } = useContext(CartContext);
   const screenWidth = Dimensions.get('window').width;
   const [menuVisible, setMenuVisible] = useState(false);
 
   const navItems = [
     { label: 'Home', screen: 'Home' },
-    { label: 'Products', screen: 'Product' },
-    { label: 'Wishlist', screen: 'Cart' },
+
     { label: 'Contact', screen: 'ContactUs' },
   ];
 
@@ -19,9 +22,9 @@ const Header = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerContainer}>
         <View style={styles.logoSection}>
-          <Image 
-            source={require('../assets/logo/logo.png')} 
-            style={styles.logo} 
+          <Image
+            source={require('../assets/logo/logo.png')}
+            style={styles.logo}
           />
           <View style={styles.titleSection}>
             <Text style={styles.companyName}>Shyam Ji</Text>
@@ -33,7 +36,7 @@ const Header = () => {
           {screenWidth > 600 && (
             <View style={styles.navBarDesktop}>
               {navItems.map((item) => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   key={item.screen}
                   onPress={() => navigation.navigate(item.screen)}
                   activeOpacity={0.7}
@@ -44,18 +47,32 @@ const Header = () => {
             </View>
           )}
 
-          <TouchableOpacity 
+          <TouchableOpacity
+            style={styles.wishlistButton}
+            onPress={() => navigation.navigate('Wishlist')}
+          >
+            <Icon name="heart" size={20} color="#FF6B6B" />
+            {getWishlistCount() > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{getWishlistCount()}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={styles.cartButton}
             onPress={() => navigation.navigate('Cart')}
           >
-            <Icon name="heart" size={20} color="#1FBFA0" />
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>0</Text>
-            </View>
+            <Icon name="shopping-cart" size={20} color="#1FBFA0" />
+            {getCartCount() > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{getCartCount()}</Text>
+              </View>
+            )}
           </TouchableOpacity>
 
           {screenWidth <= 600 && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.menuToggle}
               onPress={() => setMenuVisible(!menuVisible)}
             >
@@ -149,6 +166,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   cartButton: {
+    position: 'relative',
+    padding: 8,
+  },
+  wishlistButton: {
     position: 'relative',
     padding: 8,
   },

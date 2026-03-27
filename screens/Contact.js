@@ -9,8 +9,11 @@ import {
   ScrollView,
   ImageBackground,
   Linking,
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import emailjs from '@emailjs/browser';
+import Footer from '../components/Footer';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -20,6 +23,9 @@ const Contact = () => {
     requirement: '',
   });
 
+  const [buttonText, setButtonText] = useState('Submit Query');
+  const [isSuccessModalVisible, setSuccessModalVisible] = useState(false);
+
   const handleChange = (key, value) => {
     setFormData({ ...formData, [key]: value });
   };
@@ -28,7 +34,7 @@ const Contact = () => {
     const { name, email, phone, requirement } = formData;
 
     if (!name || !email || !phone || !requirement) {
-      Alert.alert('Missing Fields', 'Please fill in all fields.');
+      Platform.OS === 'web' ? window.alert('Please fill in all fields.') : Alert.alert('Missing Fields', 'Please fill in all fields.');
       return;
     }
 
@@ -36,75 +42,47 @@ const Contact = () => {
     const phoneRegex = /^[0-9]{10}$/;
 
     if (!emailRegex.test(email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      Platform.OS === 'web' ? window.alert('Please enter a valid email address.') : Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return;
     }
 
     if (!phoneRegex.test(phone)) {
-      Alert.alert('Invalid Phone Number', 'Please enter a 10-digit phone number.');
+      Platform.OS === 'web' ? window.alert('Please enter exactly a 10-digit phone number (e.g. 9876543210).') : Alert.alert('Invalid Phone Number', 'Please enter a 10-digit phone number.');
       return;
     }
 
-    Alert.alert(
-      'Confirm Submission',
-      'Are you sure you want to submit your query?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Submit',
-          onPress: async () => {
-            try {
-              const sendEmail = async (templateId, templateParams) => {
-                const payload = {
-                  service_id: 'service_wp2id3c',
-                  template_id: templateId,
-                  user_id: 'fnr5Np_7rM7tjBmgX',
-                  template_params: templateParams,
-                };
+    // 1. Trigger success UI immediately before EmailJS background load
+    setSuccessModalVisible(true);
+    setButtonText('Query Submitted');
+    setTimeout(() => setButtonText('Submit Query'), 3000);
+    setFormData({ name: '', email: '', phone: '', requirement: '' });
 
-                const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify(payload),
-                });
+    // 3. Attempt EmailJS in background via official SDK to fix web CORS headers
+    try {
+      const templateParams = {
+        from_name: name,
+        reply_to: email,
+        phone: phone,
+        message: requirement,
+      };
 
-                if (!response.ok) {
-                  throw new Error('Email sending failed');
-                }
-              };
-
-              await sendEmail('template_customer', {
-                to_name: name,
-                reply_to: email,
-                message: `Thank you for reaching out to Shyam Ji Textile. We have received your query and will get back to you soon.\n\nYour Query: ${requirement}`,
-              });
-
-              await sendEmail('template_admin', {
-                from_name: name,
-                reply_to: email,
-                phone: phone,
-                message: requirement,
-              });
-
-              Alert.alert('Success', 'Your query has been sent successfully!');
-              setFormData({ name: '', email: '', phone: '', requirement: '' });
-            } catch (error) {
-              console.error('EmailJS error:', error);
-              Alert.alert('Error', 'Something went wrong while sending your message. Please try again later.');
-            }
-          },
-        },
-      ]
-    );
+      emailjs.send(
+        'service_39xssrf',
+        'template_gbr4b2e',
+        templateParams,
+        'fnr5Np_7rM7tjBmgX'
+      ).then((response) => {
+        console.log('Background EmailJS SUCCESS:', response.status, response.text);
+      }).catch((error) => {
+        console.error('Background EmailJS FAILED:', error);
+      });
+    } catch (error) {
+      console.log('Background EmailJS Sync error:', error);
+    }
   };
 
   const openWhatsApp = () => {
-    const phoneNumber = '918233554755';
+    const phoneNumber = '918094556508';
     const message = 'Hello, I have a query!';
     let url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
 
@@ -161,19 +139,38 @@ const Contact = () => {
           />
 
           <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-            <Text style={styles.buttonText}>Submit Query</Text>
+            <Text style={styles.buttonText}>{buttonText}</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{ marginTop: 40, marginHorizontal: -20, marginBottom: -20 }}>
+          <Footer />
+        </View>
+        {/* Social Media Float */}
+        <View style={styles.socialContainer}>
+          <TouchableOpacity style={styles.iconButton} onPress={openWhatsApp}>
+            <Icon name="whatsapp" size={28} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton} onPress={openInstagram}>
+            <Icon name="instagram" size={28} color="#fff" />
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      <View style={styles.floatingIcons}>
-        <TouchableOpacity style={styles.iconButton} onPress={openInstagram}>
-          <Icon name="instagram" size={28} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton} onPress={openWhatsApp}>
-          <Icon name="whatsapp" size={28} color="#fff" />
-        </TouchableOpacity>
-      </View>
+      {isSuccessModalVisible && (
+        <View style={styles.absoluteModalOverlay}>
+          <View style={styles.modalContent}>
+            <Icon name="check-circle" size={60} color="#4CAF50" style={{ marginBottom: 20 }} />
+            <Text style={styles.modalTitle}>Query Submitted!</Text>
+            <Text style={styles.modalMessage}>Thank you! Your query has been successfully routed to our team.</Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setSuccessModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </ImageBackground>
   );
 };
@@ -225,7 +222,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
   },
-  floatingIcons: {
+  socialContainer: {
     position: 'absolute',
     bottom: 25,
     right: 20,
@@ -237,9 +234,67 @@ const styles = StyleSheet.create({
     width: 55,
     height: 55,
     borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  absoluteModalOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 5,
+    zIndex: 9999,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    width: '80%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 25,
+    lineHeight: 22,
+  },
+  modalButton: {
+    backgroundColor: '#8B0000',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

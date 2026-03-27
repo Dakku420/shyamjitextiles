@@ -1,5 +1,9 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useContext } from 'react';
+import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, Dimensions, Alert } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { WishlistContext } from '../context/WishlistContext';
+import { CartContext } from '../context/CartContext';
+import Footer from '../components/Footer';
 
 const products = {
   bags: [
@@ -48,24 +52,24 @@ const products = {
   'kids-dohar': [
     { id: 1, name: 'Kids Dohar 1', image: require('../assets/products/kids-dohar-1.jpg') },
     { id: 2, name: 'Kids Dohar 2', image: require('../assets/products/kids-dohar-2.jpg') },
-    { id: 1, name: 'Kids Dohar 3', image: require('../assets/products/kids-dohar-3.jpg') },
-    { id: 2, name: 'Kids Dohar 4', image: require('../assets/products/kids-dohar-4.jpg') },
-    { id: 1, name: 'Kids Dohar 5', image: require('../assets/products/kids-dohar-5.jpg') },
-    { id: 2, name: 'Kids Dohar 6', image: require('../assets/products/kids-dohar-6.jpg') },
-    { id: 1, name: 'Kids Dohar 7', image: require('../assets/products/kids-dohar-7.jpg') },
-    { id: 2, name: 'Kids Dohar 8', image: require('../assets/products/kids-dohar-8.jpg') },
-    { id: 1, name: 'Kids Dohar 9', image: require('../assets/products/kids-dohar-9.jpg') },
-    { id: 2, name: 'Kids Dohar 10', image: require('../assets/products/kids-dohar-10.jpg') },
-    { id: 1, name: 'Kids Dohar 11', image: require('../assets/products/kids-dohar-11.jpg') },
-    { id: 2, name: 'Kids Dohar 12', image: require('../assets/products/kids-dohar-12.jpg') },
-    { id: 1, name: 'Kids Dohar 13', image: require('../assets/products/kids-dohar-13.jpg') },
-    { id: 2, name: 'Kids Dohar 14', image: require('../assets/products/kids-dohar-14.jpg') },
-    { id: 1, name: 'Kids Dohar 15', image: require('../assets/products/kids-dohar-15.jpg') },
-    { id: 2, name: 'Kids Dohar 16', image: require('../assets/products/kids-dohar-16.jpg') },
-    { id: 1, name: 'Kids Dohar 17', image: require('../assets/products/kids-dohar-17.jpg') },
-    { id: 2, name: 'Kids Dohar 18', image: require('../assets/products/kids-dohar-18.jpg') },
-    { id: 2, name: 'Kids Dohar 18', image: require('../assets/products/kids-dohar-19.jpg') },
-    { id: 2, name: 'Kids Dohar 18', image: require('../assets/products/kids-dohar-20.jpg') },
+    { id: 3, name: 'Kids Dohar 3', image: require('../assets/products/kids-dohar-3.jpg') },
+    { id: 4, name: 'Kids Dohar 4', image: require('../assets/products/kids-dohar-4.jpg') },
+    { id: 5, name: 'Kids Dohar 5', image: require('../assets/products/kids-dohar-5.jpg') },
+    { id: 6, name: 'Kids Dohar 6', image: require('../assets/products/kids-dohar-6.jpg') },
+    { id: 7, name: 'Kids Dohar 7', image: require('../assets/products/kids-dohar-7.jpg') },
+    { id: 8, name: 'Kids Dohar 8', image: require('../assets/products/kids-dohar-8.jpg') },
+    { id: 9, name: 'Kids Dohar 9', image: require('../assets/products/kids-dohar-9.jpg') },
+    { id: 10, name: 'Kids Dohar 10', image: require('../assets/products/kids-dohar-10.jpg') },
+    { id: 11, name: 'Kids Dohar 11', image: require('../assets/products/kids-dohar-11.jpg') },
+    { id: 12, name: 'Kids Dohar 12', image: require('../assets/products/kids-dohar-12.jpg') },
+    { id: 13, name: 'Kids Dohar 13', image: require('../assets/products/kids-dohar-13.jpg') },
+    { id: 14, name: 'Kids Dohar 14', image: require('../assets/products/kids-dohar-14.jpg') },
+    { id: 15, name: 'Kids Dohar 15', image: require('../assets/products/kids-dohar-15.jpg') },
+    { id: 16, name: 'Kids Dohar 16', image: require('../assets/products/kids-dohar-16.jpg') },
+    { id: 17, name: 'Kids Dohar 17', image: require('../assets/products/kids-dohar-17.jpg') },
+    { id: 18, name: 'Kids Dohar 18', image: require('../assets/products/kids-dohar-18.jpg') },
+    { id: 19, name: 'Kids Dohar 19', image: require('../assets/products/kids-dohar-19.jpg') },
+    { id: 20, name: 'Kids Dohar 20', image: require('../assets/products/kids-dohar-20.jpg') },
     // More kids dohar...
   ],
   'baby-quilt': [
@@ -128,7 +132,7 @@ const products = {
     // More sofa throws...
   ],
   'Towel': [
-    
+
     { id: 3, name: 'Towel 3', image: require('../assets/products/towel-3.jpg') },
     { id: 4, name: 'Towel 4', image: require('../assets/products/towel-4.jpg') },
     { id: 5, name: 'Towel 5', image: require('../assets/products/towel-5.jpg') },
@@ -146,10 +150,12 @@ const products = {
     { id: 2, name: 'table-placement-and-napkins-and-runner-set-yellow', image: require('../assets/products/table-placement-and-napkins-and-runner-set-yellow.jpg') },
     // More sofa throws...
   ],
-  
+
 };
 
 const ProductCatalogue = ({ route, navigation }) => {
+  const { wishlist, addToWishlist, isInWishlist, removeFromWishlist } = useContext(WishlistContext);
+  const { cart, addToCart, isInCart } = useContext(CartContext);
   const { product } = route.params;  // Get the product category passed from the Home screen
   const productList = products[product] || [];  // Fetch the products based on the category
   const screenWidth = Dimensions.get('window').width;
@@ -159,29 +165,92 @@ const ProductCatalogue = ({ route, navigation }) => {
     marginBottom: 10,
   };
 
-  const renderProductItem = ({ item }) => (
-    <TouchableOpacity 
-      style={[styles.productCard, { width: (screenWidth - 40) / numColumns - 8 }]}
-      onPress={() => {
-        // Navigate to Product detail view with images
-        const allImages = productList
-          .filter(p => p.name.toLowerCase().includes(item.name.toLowerCase().split(' ')[0]))
-          .map(p => p.image);
-        
-        navigation.navigate('Product', { 
-          productName: product, 
-          images: allImages.length > 0 ? allImages : [item.image] 
-        });
-      }}
-    >
-      <Image source={item.image} style={styles.productImage} />
+  const handleWishlistToggle = (item, index) => {
+    if (isInWishlist(product, index)) {
+      removeFromWishlist(product, index);
+      Alert.alert('Removed', 'Item removed from wishlist');
+    } else {
+      const added = addToWishlist({
+        category: product,
+        index: index,
+        name: item.name,
+        image: item.image,
+      });
+      if (added) {
+        Alert.alert('Added', 'Item added to wishlist! ❤️');
+      }
+    }
+  };
+
+  const handleCartToggle = (item, index) => {
+    if (isInCart(product, index)) {
+      Alert.alert('Already in Cart', 'This item is already in your cart');
+    } else {
+      const added = addToCart({
+        category: product,
+        index: index,
+        name: item.name,
+        image: item.image,
+      });
+      if (added) {
+        Alert.alert('Added to Cart', 'Item added to cart for checkout! 🛒');
+      }
+    }
+  };
+
+  const renderProductItem = ({ item, index }) => (
+    <View style={[styles.productCard, { width: (screenWidth - 40) / numColumns - 8 }]}>
+      <TouchableOpacity
+        style={{ position: 'relative', zIndex: 1, width: '100%', height: 150 }}
+        onPress={() => {
+          const allImages = productList
+            .filter(p => p.name.toLowerCase().includes(item.name.toLowerCase().split(' ')[0]))
+            .map(p => p.image);
+
+          navigation.navigate('Product', {
+            productName: product,
+            images: allImages.length > 0 ? allImages : [item.image]
+          });
+        }}
+      >
+        <Image source={item.image} style={styles.productImage} />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[
+          styles.wishlistButton,
+          isInWishlist(product, index) && styles.wishlistButtonActive
+        ]}
+        onPress={() => handleWishlistToggle(item, index)}
+      >
+        <Icon
+          name={isInWishlist(product, index) ? 'heart' : 'heart-o'}
+          size={18}
+          color="#fff"
+        />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[
+          styles.cartButton,
+          isInCart(product, index) && styles.cartButtonActive
+        ]}
+        onPress={() => handleCartToggle(item, index)}
+      >
+        <Icon
+          name="shopping-cart"
+          size={18}
+          color="#fff"
+        />
+      </TouchableOpacity>
+
       <View style={styles.productInfo}>
         <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
         <TouchableOpacity style={styles.viewButton}>
           <Text style={styles.viewButtonText}>View Details</Text>
         </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -197,6 +266,8 @@ const ProductCatalogue = ({ route, navigation }) => {
         renderItem={renderProductItem}
         scrollEnabled={true}
         nestedScrollEnabled={true}
+        extraData={[wishlist, cart]}
+        ListFooterComponent={<Footer />}
       />
     </View>
   );
@@ -205,8 +276,67 @@ const ProductCatalogue = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 15,
-    backgroundColor: '#F5F1E8',
+    backgroundColor: '#fff',
+    padding: 12,
+    position: 'relative',
+  },
+  productCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginHorizontal: 4,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+    position: 'relative',
+  },
+  productImage: {
+    width: '100%',
+    height: 150,
+    resizeMode: 'cover',
+    backgroundColor: '#f0f0f0',
+  },
+  wishlistButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#FF6B6B',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    zIndex: 10,
+  },
+  wishlistButtonActive: {
+    backgroundColor: '#8B0000',
+  },
+  cartButton: {
+    position: 'absolute',
+    bottom: 10,
+    right: 8,
+    backgroundColor: '#FF9800',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    zIndex: 10,
+  },
+  cartButtonActive: {
+    backgroundColor: '#2E7D32',
   },
   title: {
     fontSize: 26,
@@ -220,24 +350,6 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     marginBottom: 15,
-  },
-  productCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginHorizontal: 4,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  productImage: {
-    width: '100%',
-    height: 150,
-    resizeMode: 'cover',
-    backgroundColor: '#f0f0f0',
   },
   productInfo: {
     padding: 10,

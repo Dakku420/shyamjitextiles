@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, FlatList, Image, Dimensions, TextInput, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Footer from '../components/Footer';
 
 const Home = ({ navigation }) => {
   const screenWidth = Dimensions.get('window').width;
   const [email, setEmail] = useState('');
-  
+
   const categories = [
     { name: 'Bedsheets', id: 'bedsheet-with-quilted-pillow-cover', icon: 'bed' },
     { name: 'Baby Quilts', id: 'baby-quilt', icon: 'child' },
@@ -35,7 +36,7 @@ const Home = ({ navigation }) => {
         <View style={styles.heroContent}>
           <Text style={styles.heroTitle}>Crafted with Care,{'\n'}Made for Comfort</Text>
           <Text style={styles.heroSubtitle}>Premium textiles for your family, since generations</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.contactButton}
             onPress={() => navigation.navigate('ContactUs')}
           >
@@ -54,7 +55,7 @@ const Home = ({ navigation }) => {
           showsHorizontalScrollIndicator={false}
           scrollEnabled={true}
           renderItem={({ item }) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.productCardHorizontal}
               onPress={() => navigation.navigate('ProductCatalogue', { product: item.category })}
               activeOpacity={0.7}
@@ -118,13 +119,14 @@ const Home = ({ navigation }) => {
       {/* Call to Action */}
       <View style={styles.ctaSection}>
         <Text style={styles.ctaTitle}>Ready to Experience Premium Comfort?</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.ctaPrimaryButton}
           onPress={() => navigation.navigate('Product')}
         >
           <Text style={styles.ctaPrimaryButtonText}>Shop Now</Text>
         </TouchableOpacity>
       </View>
+      <Footer />
     </ScrollView>
   );
 };
